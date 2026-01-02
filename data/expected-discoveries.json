@@ -1,0 +1,23 @@
+{
+  "entities": [
+    {"name": "Order", "field": "order_id"},
+    {"name": "Customer", "field": "customer_id"},
+    {"name": "Product", "field": "product_id"},
+    {"name": "Merchant", "field": "merchant_id"},
+    {"name": "Payment", "field": "payment_id"},
+    {"name": "Shipment", "field": "shipment_id"}
+  ],
+  "relationships": [
+    {"from": "Order", "to": "Customer", "fields": ["order_id", "customer_id"]},
+    {"from": "Order", "to": "Product", "fields": ["order_id", "product_id"]},
+    {"from": "Order", "to": "Merchant", "fields": ["order_id", "merchant_id"]},
+    {"from": "Payment", "to": "Order", "fields": ["payment_id", "order_id"]}
+  ],
+  "signals": [
+    {
+      "type": "change_point",
+      "target": "Order.status",
+      "description": "refund/failed burst"
+    }
+  ]
+}

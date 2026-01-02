@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Rust fmt
+        run: cargo fmt --all -- --check
+      - name: Rust clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      - name: Rust test
+        run: cargo test --all
+      - name: DD POC
+        run: cargo run -p worldcraft-dd-poc -- --output out/dd_discovery.json --updates-out out/dd_updates.json --metrics-out out/dd_metrics.json
+      - name: DD POC eval
+        run: python3 scripts/eval_discovery.py --expected data/expected-discoveries.json --actual out/dd_discovery.json
+
+  discovery-harness:
+    runs-on: ubuntu-latest
+    if: ${{ hashFiles('crates/discovery/src/bin/eval.rs') != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Run discovery prototype (Rust)
+        run: cargo run -p worldcraft-discovery --bin prototype -- --output out/discovery.json --metrics-out out/discovery_metrics.json
+      - name: Run discovery harness
+        run: cargo run -p worldcraft-discovery --bin eval -- --expected data/expected-discoveries.json --actual out/discovery.json
